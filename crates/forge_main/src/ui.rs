@@ -1838,7 +1838,30 @@ impl<A: API + ConsoleWriter + 'static, F: Fn(ForgeConfig) -> A + Send + Sync> UI
 
         // Setup ZSH integration with nerd font and editor configuration
         self.spinner.start(Some("Configuring ZSH"))?;
-        let result = crate::zsh::setup_zsh_integration(disable_nerd_font, forge_editor)?;
+        let result = match crate::zsh::setup_zsh_integration(disable_nerd_font, forge_editor) {
+            Ok(r) => r,
+            Err(e) => {
+                self.spinner.stop(None)?;
+                let error_message = e.to_string();
+                if error_message.contains("Read-only file system") {
+                    self.writeln_title(TitleFormat::error("Failed to update .zshrc: Read-only file system"))?;
+                    self.writeln("Forge could not automatically update your .zshrc because the file system is read-only.")?;
+                    self.writeln("This often happens on NixOS or when your configuration is managed by a tool like Home Manager.")?;
+                    println!();
+                    self.writeln_title(TitleFormat::action("Manual Setup Instructions"))?;
+                    self.writeln("Please manually add the following block to your zsh configuration:")?;
+                    println!();
+                    let config_block = crate::zsh::generate_forge_config_block(disable_nerd_font, forge_editor);
+                    for line in config_block {
+                        println!("{}", line);
+                    }
+                    println!();
+                    self.writeln("After adding these lines, restart your shell or run `exec zsh`.")?;
+                    return Ok(());
+                }
+                return Err(e);
+            }
+        };
         self.spinner.stop(None)?;
 
         // Log backup creation if one was made

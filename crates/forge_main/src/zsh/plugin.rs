@@ -246,31 +246,16 @@ pub struct ZshSetupResult {
 /// - The .zshrc file cannot be read or written
 /// - Invalid forge markers are found (incomplete or incorrectly ordered)
 /// - A backup of the existing .zshrc cannot be created
-pub fn setup_zsh_integration(
+const START_MARKER: &str = "# >>> forge initialize >>>";
+const END_MARKER: &str = "# <<< forge initialize <<<";
+
+/// Generates the forge configuration block with markers
+pub fn generate_forge_config_block(
     disable_nerd_font: bool,
     forge_editor: Option<&str>,
-) -> Result<ZshSetupResult> {
-    const START_MARKER: &str = "# >>> forge initialize >>>";
-    const END_MARKER: &str = "# <<< forge initialize <<<";
+) -> Vec<String> {
     const FORGE_INIT_CONFIG_RAW: &str = include_str!("../../../../shell-plugin/forge.setup.zsh");
     let forge_init_config = super::normalize_script(FORGE_INIT_CONFIG_RAW);
-
-    let home = std::env::var("HOME").context("HOME environment variable not set")?;
-    let zdotdir = std::env::var("ZDOTDIR").unwrap_or_else(|_| home.clone());
-    let zshrc_path = PathBuf::from(&zdotdir).join(".zshrc");
-
-    // Read existing .zshrc or create new one
-    let content = if zshrc_path.exists() {
-        fs::read_to_string(&zshrc_path)
-            .context(format!("Failed to read {}", zshrc_path.display()))?
-    } else {
-        String::new()
-    };
-
-    let mut lines: Vec<String> = content.lines().map(String::from).collect();
-
-    // Parse markers to determine their state
-    let marker_state = parse_markers(&lines, START_MARKER, END_MARKER);
 
     // Build the forge config block with markers
     let mut forge_config: Vec<String> = vec![START_MARKER.to_string()];
@@ -295,6 +280,46 @@ pub fn setup_zsh_integration(
     }
 
     forge_config.push(END_MARKER.to_string());
+    forge_config
+}
+
+/// Sets up ZSH integration with optional nerd font and editor configuration
+///
+/// # Arguments
+///
+/// * `disable_nerd_font` - If true, adds NERD_FONT=0 to .zshrc
+/// * `forge_editor` - If Some(editor), adds FORGE_EDITOR export to .zshrc
+///
+/// # Errors
+///
+/// Returns error if:
+/// - The HOME environment variable is not set
+/// - The .zshrc file cannot be read or written
+/// - Invalid forge markers are found (incomplete or incorrectly ordered)
+/// - A backup of the existing .zshrc cannot be created
+pub fn setup_zsh_integration(
+    disable_nerd_font: bool,
+    forge_editor: Option<&str>,
+) -> Result<ZshSetupResult> {
+    let home = std::env::var("HOME").context("HOME environment variable not set")?;
+    let zdotdir = std::env::var("ZDOTDIR").unwrap_or_else(|_| home.clone());
+    let zshrc_path = PathBuf::from(&zdotdir).join(".zshrc");
+
+    // Read existing .zshrc or create new one
+    let content = if zshrc_path.exists() {
+        fs::read_to_string(&zshrc_path)
+            .context(format!("Failed to read {}", zshrc_path.display()))?
+    } else {
+        String::new()
+    };
+
+    let mut lines: Vec<String> = content.lines().map(String::from).collect();
+
+    // Parse markers to determine their state
+    let marker_state = parse_markers(&lines, START_MARKER, END_MARKER);
+
+    // Build the forge config block with markers
+    let forge_config = generate_forge_config_block(disable_nerd_font, forge_editor);
 
     // Add or update forge configuration block based on marker state
     let (new_content, config_action) = match marker_state {

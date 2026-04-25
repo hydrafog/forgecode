@@ -329,9 +329,28 @@ impl<S: Services + EnvironmentInfra<Config = forge_config::ForgeConfig>> ForgeAp
             .collect();
 
         // Execute all provider fetches concurrently.
-        futures::future::join_all(futures)
-            .await
-            .into_iter()
-            .collect::<anyhow::Result<Vec<_>>>()
+        let results = futures::future::join_all(futures).await;
+
+        let mut successes = Vec::new();
+        let mut first_error = None;
+        let total_configured = results.len();
+
+        for result in results {
+            match result {
+                Ok(pm) => successes.push(pm),
+                Err(e) => {
+                    if first_error.is_none() {
+                        first_error = Some(e);
+                    }
+                }
+            }
+        }
+
+        // If every configured provider failed, return the first error encountered.
+        if successes.is_empty() && total_configured > 0 {
+            return Err(first_error.expect("first_error is Some when successes is empty and total_configured > 0"));
+        }
+
+        Ok(successes)
     }
 }
