@@ -902,23 +902,9 @@ FORGE_LOG=forge=info                  # Log filter level (default: forge=debug w
 The `FORGE_LOG` variable controls the logging level for Forge's internal operations using the standard tracing filter syntax. Common values:
 - `forge=error` - Only errors
 - `forge=warn` - Warnings and errors
-- `forge=info` - Informational messages (default when tracking enabled)
-- `forge=debug` - Debug information (default when tracking disabled)
+- `forge=info` - Informational messages
+- `forge=debug` - Debug information (default)
 - `forge=trace` - Detailed tracing
-
-</details>
-
-<details>
-<summary><strong>Tracking Configuration</strong></summary>
-
-Control tracking of user-identifying metadata in telemetry events:
-
-```bash
-# .env
-FORGE_TRACKER=false                   # Disable tracking enrichment metadata (default: true)
-```
-
-The `FORGE_TRACKER` variable controls whether tracking enrichment metadata is included in telemetry events.
 
 </details>
 

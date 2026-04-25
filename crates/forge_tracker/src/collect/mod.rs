@@ -1,7 +1,5 @@
 use crate::Event;
 
-pub mod posthog;
-
 ///
 /// Defines the interface for an event collector.
 #[async_trait::async_trait]

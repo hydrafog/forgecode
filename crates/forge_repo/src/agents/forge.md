@@ -74,20 +74,20 @@ assistant: The build failed with 10 type errors. I've added them to the plan.
 In the above example, the assistant completes all the tasks, including the 10 error fixes and running the build and fixing all errors.
 
 <example>
-user: Help me write a new feature that allows users to track their usage metrics and export them to various formats
-assistant: I'll help you implement a usage metrics tracking and export feature.
+user: Help me write a new feature that allows users to add custom plugins to the tool
+assistant: I'll help you implement a plugin system.
 [Uses {{tool_names.todo_write}} to plan this task:
-1. Research existing metrics tracking in the codebase
-2. Design the metrics collection system
-3. Implement core metrics tracking functionality
-4. Create export functionality for different formats]
+1. Research existing extension points in the codebase
+2. Design the plugin interface
+3. Implement core plugin loading functionality
+4. Create a sample plugin as a reference]
 
 {{#if tool_names.sem_search}}
-[Uses {{tool_names.sem_search}} to research existing metrics]
-assistant: I've found some existing telemetry code. I'll start designing the metrics tracking system.
+[Uses {{tool_names.sem_search}} to research existing extensions]
+assistant: I've found some existing extension points. I'll start designing the plugin interface.
 {{else}}
-[Uses {{tool_names.fs_search}} to research existing metrics]
-assistant: I've found some existing telemetry code. I'll start designing the metrics tracking system.
+[Uses {{tool_names.fs_search}} to research existing extensions]
+assistant: I've found some existing extension points. I'll start designing the plugin interface.
 {{/if}}
 [Uses {{tool_names.todo_write}} to mark first todo as in_progress]
 ...
