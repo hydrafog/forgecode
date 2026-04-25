@@ -3,8 +3,6 @@ use std::{fmt, io};
 use colored::Colorize;
 use forge_tracker::VERSION;
 
-const BANNER: &str = include_str!("banner");
-
 /// Renders messages into a styled box with border characters.
 struct DisplayBox {
     messages: Vec<String>,
@@ -58,7 +56,7 @@ pub fn display(cli_mode: bool) -> io::Result<()> {
     let mut banner = std::env::var("FORGE_BANNER")
         .ok()
         .filter(|s| !s.is_empty())
-        .unwrap_or_else(|| BANNER.to_string());
+        .unwrap_or_default();
 
     // Always show version
     let version_label = ("Version:", VERSION);
